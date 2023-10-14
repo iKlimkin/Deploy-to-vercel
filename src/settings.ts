@@ -75,7 +75,7 @@ videosRouter.get("/:id",(req: RequestWithParams<{ id: number }>, res: Response) 
   }
 );
 
-videosRouter.post("/",(req: RequestWithBody<
+videosRouter.post("/", (req: RequestWithBody<
     {
       title: string;
       author: string;
@@ -98,8 +98,7 @@ videosRouter.post("/",(req: RequestWithBody<
     }
     if (Array.isArray(availableResolutions) && availableResolutions.length) {
       availableResolutions.map((r: AvailableResolutions) => {
-        !AvailableResolutions[r] &&
-          errors.errorsMessages.push({
+        !AvailableResolutions[r] && errors.errorsMessages.push({
             message: "Invalid availableResolutions",
             field: "availableResolutions",
           });
@@ -143,7 +142,7 @@ videosRouter.put("/:id",( req: RequestWithBodyAndParams<{ id: number },
         publicationDate: string;
       }
     >, res: Response) => {
-    let {title, author, availableResolutions, canBeDownloaded, minAgeRestriction, publicationDate} = req.body;
+    const {title, author, availableResolutions, canBeDownloaded, minAgeRestriction, publicationDate} = req.body;
 
     let errors: ErrorType = {
       errorsMessages: [],
@@ -176,39 +175,26 @@ videosRouter.put("/:id",( req: RequestWithBodyAndParams<{ id: number },
               field: "availableResolutions",
             });
         });
-      } else {
-        availableResolutions = [];
-      }
-      if (
-        (typeof canBeDownloaded !== "undefined" &&
-          typeof canBeDownloaded !== "boolean") ||
-        typeof canBeDownloaded === "undefined"
-      ) {
+      } 
+      if ((typeof canBeDownloaded !== "undefined" &&typeof canBeDownloaded !== "boolean") || typeof canBeDownloaded === "undefined") {
         errors.errorsMessages.push({
           message: "Invalid canBeDownLoaded",
           field: "canBeDownLoaded",
         });
       }
-      if (
-        typeof minAgeRestriction === "undefined" ||
-        typeof minAgeRestriction !== "number" ||
-        minAgeRestriction < 1 ||
-        minAgeRestriction > 18
-      ) {
+      if (typeof minAgeRestriction === "undefined" || typeof minAgeRestriction !== "number" || minAgeRestriction < 1 || minAgeRestriction > 18) {
         errors.errorsMessages.push({
           message: "Invalid minAgeRestriction",
           field: "minAgeRestriction",
         });
       }
-      if (
-        typeof publicationDate === "undefined" ||
-        typeof publicationDate !== "string"
-      ) {
-        errors.errorsMessages.push({
+      if (!publicationDate || typeof publicationDate !== "string") {
+         errors.errorsMessages.push({
           message: "Invalid publicationDate",
           field: "publicationDate",
         });
       }
+      
       if (errors.errorsMessages.length) {
         res.status(400).send(errors);
       } else {
@@ -227,13 +213,13 @@ videosRouter.put("/:id",( req: RequestWithBodyAndParams<{ id: number },
 videosRouter.delete("/:id", (req: RequestWithParams<{ id: number }>, res: Response) => {
   const id = +req.params.id;
   const indexVideo = videoDb.findIndex((video: VideoType) => video.id === id);
-  if (indexVideo === -1) {
-    res.sendStatus(404);
-    return;
-  } else {
-    videoDb.splice(indexVideo, 1);
-    res.sendStatus(204);
-  }
+    if (indexVideo === -1) {
+      res.sendStatus(404);
+      return;
+    } else {
+      videoDb.splice(indexVideo, 1);
+      res.sendStatus(204);
+    }
 });
 
 videosRouter.delete("/testing/all-data", (res: Response, req: Request) => {
