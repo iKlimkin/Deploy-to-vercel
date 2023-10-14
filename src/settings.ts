@@ -143,14 +143,7 @@ videosRouter.put("/:id",( req: RequestWithBodyAndParams<{ id: number },
         publicationDate: string;
       }
     >, res: Response) => {
-    let {
-      title,
-      author,
-      availableResolutions,
-      canBeDownloaded,
-      minAgeRestriction,
-      publicationDate,
-    } = req.body;
+    let {title, author, availableResolutions, canBeDownloaded, minAgeRestriction, publicationDate} = req.body;
 
     let errors: ErrorType = {
       errorsMessages: [],
