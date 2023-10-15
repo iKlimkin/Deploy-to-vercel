@@ -4,18 +4,18 @@ export const app = express();
 
 app.use(express.json());
 
-type RequestWithParams<P> = Request<P, {}, {}, {}>;
-type RequestWithBody<B> = Request<{}, {}, B, {}>;
-type RequestWithBodyAndParams<P, B> = Request<P, {}, B, {}>;
+export type RequestWithParams<P> = Request<P, {}, {}, {}>;
+export type RequestWithBody<B> = Request<{}, {}, B, {}>;
+export type RequestWithBodyAndParams<P, B> = Request<P, {}, B, {}>;
 
-type ErrorsMessages = {
+export type ErrorsMessages = {
   message: string;
   field: string;
 };
-type ErrorType = {
+export type ErrorType = {
   errorsMessages: ErrorsMessages[];
 };
-enum AvailableResolutions {
+export enum AvailableResolutions {
   P144 = "P144",
   P240 = "P144",
   P360 = "P144",
@@ -26,7 +26,7 @@ enum AvailableResolutions {
   P2160 = "P1440",
 }
 
-type VideoType = {
+export type VideoType = {
   id: number;
   title: string;
   author: string;
@@ -37,7 +37,7 @@ type VideoType = {
   availableResolutions: AvailableResolutions[];
 };
 
-const videoDb: VideoType[] = [
+export const videoDb: VideoType[] = [
   {
     id: 0,
     title: "string",
@@ -65,6 +65,9 @@ videosRouter.get("/", (req: Request, res: Response) => {
 });
 videosRouter.get("/:id",(req: RequestWithParams<{ id: number }>, res: Response) => {
     const id = +req.params.id;
+    if (!id) {
+      res.sendStatus(400)
+    }
     const video = videoDb.find((video: VideoType) => video.id === id);
     if (!video) {
       res.sendStatus(404);
@@ -86,18 +89,17 @@ videosRouter.post("/", (req: RequestWithBody<
       errorsMessages: [],
     };
 
-    let { title, author, availableResolutions } = req.body;
+    let { title, author, availableResolutions } = req.body
 
-    if (!title || title.trim().length > 40) {
+    if (!title || title.trim() || title.trim().length > 40) {
       errors.errorsMessages.push({ message: "Invalid title", field: "title" });
     }
-    if (!author || author.trim().length > 20) {
+    if (!author || author.trim() || author.trim().length > 20) {
       errors.errorsMessages.push({
         message: "Invalid author",
         field: "author",
       });
     }
-
     if (Array.isArray(availableResolutions) && availableResolutions.length) {
       availableResolutions.map((r: AvailableResolutions) => {
         !AvailableResolutions[r] && errors.errorsMessages.push({
@@ -109,10 +111,10 @@ videosRouter.post("/", (req: RequestWithBody<
       availableResolutions = [];
     }
 
-    if (errors.errorsMessages.length) {
-      res.status(400).send(errors);
-      return;
-    }
+      if (errors.errorsMessages.length) {
+        res.status(400).send(errors);
+        return
+      }
 
     const createdAt = new Date();
     const publicationDate = new Date();
@@ -144,19 +146,29 @@ videosRouter.put("/:id",( req: RequestWithBodyAndParams<{ id: number },
         publicationDate: string;
       }
     >, res: Response) => {
-    const {title, author, availableResolutions, canBeDownloaded, minAgeRestriction, publicationDate} = req.body;
+    let {title, author, availableResolutions, canBeDownloaded, minAgeRestriction, publicationDate} = req.body;
+
+    if (!req.body.title && !req.body.author) {
+      res.sendStatus(400)
+      return
+    }
 
     let errors: ErrorType = {
       errorsMessages: [],
     };
 
     const id = +req.params.id;
+      if (!id) {
+        res.sendStatus(400)
+        return
+    }
     let video = videoDb.find((video: VideoType) => video.id === id);
 
     if (!video) {
       res.sendStatus(404);
       return;
     } else {
+
       if (!title || !title.trim().length || title.trim().length > 40) {
         errors.errorsMessages.push({
           message: "Invalid title",
@@ -177,8 +189,11 @@ videosRouter.put("/:id",( req: RequestWithBodyAndParams<{ id: number },
               field: "availableResolutions",
             });
         });
-      } 
-      if ((typeof canBeDownloaded !== "undefined" &&typeof canBeDownloaded !== "boolean") || typeof canBeDownloaded === "undefined") {
+      } else {
+        availableResolutions = [];
+      }
+
+      if (typeof canBeDownloaded !== "undefined" && typeof canBeDownloaded !== "boolean") {
         errors.errorsMessages.push({
           message: "Invalid canBeDownLoaded",
           field: "canBeDownLoaded",
@@ -200,11 +215,11 @@ videosRouter.put("/:id",( req: RequestWithBodyAndParams<{ id: number },
       if (errors.errorsMessages.length) {
         res.status(400).send(errors);
       } else {
-        video.title = title;
-        video.author = author;
-        video.availableResolutions = availableResolutions;
-        video.canBeDownloaded = canBeDownloaded || false;
-        video.publicationDate = publicationDate;
+        video.title = title
+        video.author = author
+        video.availableResolutions = availableResolutions
+        video.canBeDownloaded = canBeDownloaded || false
+        video.publicationDate = publicationDate
 
         res.sendStatus(204);
       }
