@@ -1,3 +1,4 @@
+import { log } from "console";
 import express, { Request, Response, Router } from "express";
 
 export const app = express();
@@ -26,6 +27,12 @@ export enum AvailableResolutions {
   P2160 = "P1440",
 }
 
+export type CreateVideoT = {
+  title: string;
+  author: string;
+  availableResolutions: AvailableResolutions[];
+};
+
 export type VideoType = {
   id: number;
   title: string;
@@ -46,9 +53,7 @@ export const videoDb: VideoType[] = [
     minAgeRestriction: null,
     createdAt: "2023-10-13T09:15:13.907Z",
     publicationDate: "2023-10-13T09:15:13.907Z",
-    availableResolutions: [
-        AvailableResolutions.P144
-    ],
+    availableResolutions: [AvailableResolutions.P144],
   },
 ];
 
@@ -63,58 +68,84 @@ app.get("/", (req: Request, res: Response) => {
 videosRouter.get("/", (req: Request, res: Response) => {
   res.send(videoDb);
 });
-videosRouter.get("/:id",(req: RequestWithParams<{ id: number }>, res: Response) => {
+videosRouter.get(
+  "/:id",
+  (req: RequestWithParams<{ id: number }>, res: Response) => {
     const id = +req.params.id;
-    if (!id) {
-      res.sendStatus(400)
-    }
+
     const video = videoDb.find((video: VideoType) => video.id === id);
     if (!video) {
       res.sendStatus(404);
       return;
     }
 
-    res.send(video);
+    return res.send(video);
   }
 );
 
-videosRouter.post("/", (req: RequestWithBody<
-    {
+videosRouter.post(
+  "/",
+  (
+    req: RequestWithBody<{
       title: string;
       author: string;
       availableResolutions: AvailableResolutions[];
-    }>, res: Response) => {
-
+    }>,
+    res: Response
+  ) => {
     let errors: ErrorType = {
       errorsMessages: [],
     };
 
-    let { title, author, availableResolutions } = req.body
+    let { title, author, availableResolutions } = req.body;
 
-    if (!title || title.trim() || title.trim().length > 40) {
+    if (
+      !title ||
+      typeof title !== "string" ||
+      !title.trim() ||
+      title.length > 40
+    ) {
       errors.errorsMessages.push({ message: "Invalid title", field: "title" });
     }
-    if (!author || author.trim() || author.trim().length > 20) {
+    if (
+      !author ||
+      typeof author !== "string" ||
+      !author.trim() ||
+      author.length > 20
+    ) {
       errors.errorsMessages.push({
         message: "Invalid author",
         field: "author",
       });
     }
-    if (Array.isArray(availableResolutions) && availableResolutions.length) {
-      availableResolutions.map((r: AvailableResolutions) => {
-        !AvailableResolutions[r] && errors.errorsMessages.push({
-            message: "Invalid availableResolutions",
-            field: "availableResolutions",
-          });
+    if (
+      !availableResolutions ||
+      !Array.isArray(availableResolutions) ||
+      !availableResolutions.every((el) =>
+        Object.values(AvailableResolutions).includes(el)
+      )
+    ) {
+      errors.errorsMessages.push({
+        message: "Invalid availableResolutions",
+        field: "availableResolutions",
       });
-    } else {
-      availableResolutions = [];
     }
+    // if (Array.isArray(availableResolutions) && availableResolutions.length) {
+    //   availableResolutions.map((r: AvailableResolutions) => {
+    //     !AvailableResolutions[r] &&
+    //       errors.errorsMessages.push({
+    //         message: "Invalid availableResolutions",
+    //         field: "availableResolutions",
+    //       });
+    //   });
+    // } else {
+    //   availableResolutions = [];
+    // }
 
-      if (errors.errorsMessages.length) {
-        res.status(400).send(errors);
-        return
-      }
+    if (errors.errorsMessages.length) {
+      res.status(400).send(errors);
+      return;
+    }
 
     const createdAt = new Date();
     const publicationDate = new Date();
@@ -135,8 +166,13 @@ videosRouter.post("/", (req: RequestWithBody<
     videoDb.push(newVideo);
 
     res.status(201).send(newVideo);
-    });
-videosRouter.put("/:id",( req: RequestWithBodyAndParams<{ id: number },
+  }
+);
+videosRouter.put(
+  "/:id",
+  (
+    req: RequestWithBodyAndParams<
+      { id: number },
       {
         title: string;
         author: string;
@@ -145,12 +181,21 @@ videosRouter.put("/:id",( req: RequestWithBodyAndParams<{ id: number },
         minAgeRestriction: number;
         publicationDate: string;
       }
-    >, res: Response) => {
-    let {title, author, availableResolutions, canBeDownloaded, minAgeRestriction, publicationDate} = req.body;
+    >,
+    res: Response
+  ) => {
+    let {
+      title,
+      author,
+      availableResolutions,
+      canBeDownloaded,
+      minAgeRestriction,
+      publicationDate,
+    } = req.body;
 
     if (!req.body.title && !req.body.author) {
-      res.sendStatus(400)
-      return
+      res.sendStatus(400);
+      return;
     }
 
     let errors: ErrorType = {
@@ -158,9 +203,9 @@ videosRouter.put("/:id",( req: RequestWithBodyAndParams<{ id: number },
     };
 
     const id = +req.params.id;
-      if (!id) {
-        res.sendStatus(400)
-        return
+    if (!id) {
+      res.sendStatus(400);
+      return;
     }
     let video = videoDb.find((video: VideoType) => video.id === id);
 
@@ -168,7 +213,6 @@ videosRouter.put("/:id",( req: RequestWithBodyAndParams<{ id: number },
       res.sendStatus(404);
       return;
     } else {
-
       if (!title || !title.trim().length || title.trim().length > 40) {
         errors.errorsMessages.push({
           message: "Invalid title",
@@ -193,20 +237,28 @@ videosRouter.put("/:id",( req: RequestWithBodyAndParams<{ id: number },
         availableResolutions = [];
       }
 
-      if (typeof canBeDownloaded !== "undefined" && typeof canBeDownloaded !== "boolean") {
+      if (
+        typeof canBeDownloaded !== "undefined" &&
+        typeof canBeDownloaded !== "boolean"
+      ) {
         errors.errorsMessages.push({
           message: "Invalid canBeDownLoaded",
           field: "canBeDownLoaded",
         });
       }
-      if (typeof minAgeRestriction === "undefined" || typeof minAgeRestriction !== "number" || minAgeRestriction < 1 || minAgeRestriction > 18) {
+      if (
+        typeof minAgeRestriction === "undefined" ||
+        typeof minAgeRestriction !== "number" ||
+        minAgeRestriction < 1 ||
+        minAgeRestriction > 18
+      ) {
         errors.errorsMessages.push({
           message: "Invalid minAgeRestriction",
           field: "minAgeRestriction",
         });
       }
       if (!publicationDate || typeof publicationDate !== "string") {
-         errors.errorsMessages.push({
+        errors.errorsMessages.push({
           message: "Invalid publicationDate",
           field: "publicationDate",
         });
@@ -215,11 +267,11 @@ videosRouter.put("/:id",( req: RequestWithBodyAndParams<{ id: number },
       if (errors.errorsMessages.length) {
         res.status(400).send(errors);
       } else {
-        video.title = title
-        video.author = author
-        video.availableResolutions = availableResolutions
-        video.canBeDownloaded = canBeDownloaded || false
-        video.publicationDate = publicationDate
+        video.title = title;
+        video.author = author;
+        video.availableResolutions = availableResolutions;
+        video.canBeDownloaded = canBeDownloaded || false;
+        video.publicationDate = publicationDate;
 
         res.sendStatus(204);
       }
@@ -227,9 +279,11 @@ videosRouter.put("/:id",( req: RequestWithBodyAndParams<{ id: number },
   }
 );
 
-videosRouter.delete("/:id", (req: RequestWithParams<{ id: number }>, res: Response) => {
-  const id = +req.params.id;
-  const indexVideo = videoDb.findIndex((video: VideoType) => video.id === id);
+videosRouter.delete(
+  "/:id",
+  (req: RequestWithParams<{ id: number }>, res: Response) => {
+    const id = +req.params.id;
+    const indexVideo = videoDb.findIndex((video: VideoType) => video.id === id);
     if (indexVideo === -1) {
       res.sendStatus(404);
       return;
@@ -237,9 +291,10 @@ videosRouter.delete("/:id", (req: RequestWithParams<{ id: number }>, res: Respon
       videoDb.splice(indexVideo, 1);
       res.sendStatus(204);
     }
-});
+  }
+);
 
-app.delete("/testing/all-data", (res: Response, req: Request) => {
+app.delete("/testing/all-data", (req: Request, res: Response) => {
   videoDb.length = 0;
   res.sendStatus(204);
 });
