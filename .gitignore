@@ -4,3 +4,4 @@ dist
 yarn-error.log
 .env
 __tests__
+jest.config.js

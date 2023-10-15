@@ -81,6 +81,7 @@ videosRouter.post("/", (req: RequestWithBody<
       author: string;
       availableResolutions: AvailableResolutions[];
     }>, res: Response) => {
+
     let errors: ErrorType = {
       errorsMessages: [],
     };
@@ -96,6 +97,7 @@ videosRouter.post("/", (req: RequestWithBody<
         field: "author",
       });
     }
+
     if (Array.isArray(availableResolutions) && availableResolutions.length) {
       availableResolutions.map((r: AvailableResolutions) => {
         !AvailableResolutions[r] && errors.errorsMessages.push({
@@ -194,7 +196,7 @@ videosRouter.put("/:id",( req: RequestWithBodyAndParams<{ id: number },
           field: "publicationDate",
         });
       }
-      
+
       if (errors.errorsMessages.length) {
         res.status(400).send(errors);
       } else {
@@ -222,7 +224,7 @@ videosRouter.delete("/:id", (req: RequestWithParams<{ id: number }>, res: Respon
     }
 });
 
-videosRouter.delete("/testing/all-data", (res: Response, req: Request) => {
+app.delete("/testing/all-data", (res: Response, req: Request) => {
   videoDb.length = 0;
   res.sendStatus(204);
 });
