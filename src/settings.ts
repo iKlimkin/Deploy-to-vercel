@@ -118,29 +118,13 @@ videosRouter.post(
         field: "author",
       });
     }
-    if (
-      !availableResolutions ||
-      !Array.isArray(availableResolutions) ||
-      !availableResolutions.every((el) =>
-        Object.values(AvailableResolutions).includes(el)
-      )
-    ) {
-      errors.errorsMessages.push({
+    if ( !availableResolutions || !Array.isArray(availableResolutions) || !availableResolutions.every((el) =>
+        Object.values(AvailableResolutions).includes(el))
+    ) { errors.errorsMessages.push({
         message: "Invalid availableResolutions",
         field: "availableResolutions",
       });
     }
-    // if (Array.isArray(availableResolutions) && availableResolutions.length) {
-    //   availableResolutions.map((r: AvailableResolutions) => {
-    //     !AvailableResolutions[r] &&
-    //       errors.errorsMessages.push({
-    //         message: "Invalid availableResolutions",
-    //         field: "availableResolutions",
-    //       });
-    //   });
-    // } else {
-    //   availableResolutions = [];
-    // }
 
     if (errors.errorsMessages.length) {
       res.status(400).send(errors);
@@ -193,15 +177,13 @@ videosRouter.put(
       publicationDate,
     } = req.body;
 
-    if (!req.body.title && !req.body.author) {
+    if (!req.body.title || !req.body.author) {
       res.sendStatus(400);
       return;
     }
-
     let errors: ErrorType = {
       errorsMessages: [],
     };
-
     const id = +req.params.id;
     if (!id) {
       res.sendStatus(400);
@@ -213,38 +195,31 @@ videosRouter.put(
       res.sendStatus(404);
       return;
     } else {
-      if (!title || !title.trim().length || title.trim().length > 40) {
+      if (!title || typeof title !== 'string' || !title.trim() || title.trim().length > 40) {
         errors.errorsMessages.push({
           message: "Invalid title",
           field: "title",
         });
       }
-      if (!author || !author.trim().length || author.trim().length > 20) {
+      if (!author || typeof author !== 'string' || !author.trim() || author.trim().length > 20) {
         errors.errorsMessages.push({
           message: "Invalid title",
           field: "title",
         });
       }
-      if (Array.isArray(availableResolutions) && availableResolutions.length) {
-        availableResolutions.map((r: AvailableResolutions) => {
-          !AvailableResolutions[r] &&
-            errors.errorsMessages.push({
-              message: "Invalid availableResolutions",
-              field: "availableResolutions",
-            });
-        });
-      } else {
-        availableResolutions = [];
-      }
+      if ( !availableResolutions || !Array.isArray(availableResolutions) || !availableResolutions.every((el) =>
+        Object.values(AvailableResolutions).includes(el))) {
+          errors.errorsMessages.push({
+            message: "Invalid availableResolutions",
+            field: "availableResolutions",
+          });
+        }
 
-      if (
-        typeof canBeDownloaded !== "undefined" &&
-        typeof canBeDownloaded !== "boolean"
-      ) {
-        errors.errorsMessages.push({
-          message: "Invalid canBeDownLoaded",
-          field: "canBeDownLoaded",
-        });
+      if (typeof canBeDownloaded !== "undefined" && typeof canBeDownloaded !== "boolean") {
+          errors.errorsMessages.push({
+            message: "Invalid canBeDownLoaded",
+            field: "canBeDownLoaded",
+          });
       }
       if (
         typeof minAgeRestriction === "undefined" ||
