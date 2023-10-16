@@ -18,13 +18,13 @@ export type ErrorType = {
 };
 export enum AvailableResolutions {
   P144 = "P144",
-  P240 = "P144",
-  P360 = "P144",
+  P240 = "P240",
+  P360 = "P360",
   P480 = "P480",
-  P720 = "P480",
-  P1080 = "P480",
+  P720 = "P720",
+  P1080 = "P1080",
   P1440 = "P1440",
-  P2160 = "P1440",
+  P2160 = "P2160",
 }
 
 export type CreateVideoT = {
@@ -79,7 +79,7 @@ videosRouter.get(
       return;
     }
 
-    return res.send(video);
+    res.send(video);
   }
 );
 
@@ -177,18 +177,11 @@ videosRouter.put(
       publicationDate,
     } = req.body;
 
-    if (!req.body.title || !req.body.author) {
-      res.sendStatus(400);
-      return;
-    }
     let errors: ErrorType = {
       errorsMessages: [],
     };
     const id = +req.params.id;
-    if (!id) {
-      res.sendStatus(400);
-      return;
-    }
+  
     let video = videoDb.find((video: VideoType) => video.id === id);
 
     if (!video) {
@@ -246,6 +239,7 @@ videosRouter.put(
         video.author = author;
         video.availableResolutions = availableResolutions;
         video.canBeDownloaded = canBeDownloaded || false;
+        video.minAgeRestriction = minAgeRestriction;
         video.publicationDate = publicationDate;
 
         res.sendStatus(204);
@@ -262,10 +256,11 @@ videosRouter.delete(
     if (indexVideo === -1) {
       res.sendStatus(404);
       return;
-    } else {
+    }
+
       videoDb.splice(indexVideo, 1);
       res.sendStatus(204);
-    }
+   
   }
 );
 
