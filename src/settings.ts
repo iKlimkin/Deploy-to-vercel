@@ -164,10 +164,7 @@ videosRouter.put(
         canBeDownloaded: boolean;
         minAgeRestriction: number;
         publicationDate: string;
-      }
-    >,
-    res: Response
-  ) => {
+      }>, res: Response) => {
     let {
       title,
       author,
@@ -180,61 +177,65 @@ videosRouter.put(
     let errors: ErrorType = {
       errorsMessages: [],
     };
+
     const id = +req.params.id;
+
+    if (!title || typeof title !== 'string' || !title.trim() || title.trim().length > 40) {
+      errors.errorsMessages.push({
+        message: "Invalid title",
+        field: "title",
+      });
+    }
+    if (!author || typeof author !== 'string' || !author.trim() || author.trim().length > 20) {
+      errors.errorsMessages.push({
+        message: "Invalid title",
+        field: "title",
+      });
+    }
+    if ( !availableResolutions || !Array.isArray(availableResolutions) || !availableResolutions.every((el) =>
+      Object.values(AvailableResolutions).includes(el))) {
+        errors.errorsMessages.push({
+          message: "Invalid availableResolutions",
+          field: "availableResolutions",
+        });
+      }
+
+    if (typeof canBeDownloaded !== "undefined" && typeof canBeDownloaded !== "boolean") {
+        errors.errorsMessages.push({
+          message: "Invalid canBeDownLoaded",
+          field: "canBeDownLoaded",
+        });
+    }
+    if (
+      typeof minAgeRestriction === "undefined" ||
+      typeof minAgeRestriction !== "number" ||
+      minAgeRestriction < 1 ||
+      minAgeRestriction > 18
+    ) {
+      errors.errorsMessages.push({
+        message: "Invalid minAgeRestriction",
+        field: "minAgeRestriction",
+      });
+    }
+    if (!publicationDate || typeof publicationDate !== "string") {
+      errors.errorsMessages.push({
+        message: "Invalid publicationDate",
+        field: "publicationDate",
+      });
+    }
+
+    if (errors.errorsMessages.length) {
+      res.status(400).send(errors);
+      return
+    }
   
     let video = videoDb.find((video: VideoType) => video.id === id);
 
     if (!video) {
       res.sendStatus(404);
       return;
-    } else {
-      if (!title || typeof title !== 'string' || !title.trim() || title.trim().length > 40) {
-        errors.errorsMessages.push({
-          message: "Invalid title",
-          field: "title",
-        });
-      }
-      if (!author || typeof author !== 'string' || !author.trim() || author.trim().length > 20) {
-        errors.errorsMessages.push({
-          message: "Invalid title",
-          field: "title",
-        });
-      }
-      if ( !availableResolutions || !Array.isArray(availableResolutions) || !availableResolutions.every((el) =>
-        Object.values(AvailableResolutions).includes(el))) {
-          errors.errorsMessages.push({
-            message: "Invalid availableResolutions",
-            field: "availableResolutions",
-          });
-        }
-
-      if (typeof canBeDownloaded !== "undefined" && typeof canBeDownloaded !== "boolean") {
-          errors.errorsMessages.push({
-            message: "Invalid canBeDownLoaded",
-            field: "canBeDownLoaded",
-          });
-      }
-      if (
-        typeof minAgeRestriction === "undefined" ||
-        typeof minAgeRestriction !== "number" ||
-        minAgeRestriction < 1 ||
-        minAgeRestriction > 18
-      ) {
-        errors.errorsMessages.push({
-          message: "Invalid minAgeRestriction",
-          field: "minAgeRestriction",
-        });
-      }
-      if (!publicationDate || typeof publicationDate !== "string") {
-        errors.errorsMessages.push({
-          message: "Invalid publicationDate",
-          field: "publicationDate",
-        });
-      }
-
-      if (errors.errorsMessages.length) {
-        res.status(400).send(errors);
-      } else {
+    }
+    
         video.title = title;
         video.author = author;
         video.availableResolutions = availableResolutions;
@@ -244,8 +245,6 @@ videosRouter.put(
 
         res.sendStatus(204);
       }
-    }
-  }
 );
 
 videosRouter.delete(
