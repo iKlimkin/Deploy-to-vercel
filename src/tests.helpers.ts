@@ -1,7 +1,8 @@
 import request from "supertest";
-import { CreateVideoT, app } from "./settings";
+import { CreateVideoModel } from "./models/CreateVideoModel";
+import { app } from "./app";
 
-export const createVideo = async (inputData: CreateVideoT) => {
+export const createVideo = async (inputData: CreateVideoModel) => {
   return request(app).post("/videos/").send(inputData);
 };
 
