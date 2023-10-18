@@ -203,7 +203,7 @@ videosRouter.put(
     if (typeof canBeDownloaded !== "undefined" && typeof canBeDownloaded !== "boolean") {
         errors.errorsMessages.push({
           message: "Invalid canBeDownLoaded",
-          field: "canBeDownLoaded",
+          field: "canBeDownloaded",
         });
     }
     if (
