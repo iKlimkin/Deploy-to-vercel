@@ -189,7 +189,7 @@ videosRouter.put(
     if (!author || typeof author !== 'string' || !author.trim() || author.trim().length > 20) {
       errors.errorsMessages.push({
         message: "Invalid title",
-        field: "title",
+        field: "author",
       });
     }
     if ( !availableResolutions || !Array.isArray(availableResolutions) || !availableResolutions.every((el) =>
